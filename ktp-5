@@ -1,0 +1,346 @@
+package com.company;
+import java.util.*;
+import java.lang.Math;
+import java.security.*;
+import java.nio.charset.StandardCharsets;
+public class Main {
+
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+
+        System.out.println(Arrays.toString(encrypt("Hello")));
+        int[] mas = {72, 33, -73, 84, -12, -3, 13, -13, -68};
+        System.out.println(decrypt(mas));
+
+        System.out.println(canMove("Rook", "A8", "H8"));
+
+        System.out.println(canComplete("butl", "beautiful"));
+
+        System.out.println(sumDigProd(16, 28));
+
+        String[] s = {"toe", "ocelot", "maniac"};
+        System.out.println(Arrays.toString(sameVowelGroup(s)));
+
+        System.out.println(validateCard(1234567890123456L));
+
+        System.out.println(numToEng(0));
+
+        System.out.println(getSha256Hash("password123456"));
+
+        System.out.println(correctTitle("sansa stark, lady of winterfell."));
+
+        System.out.println(hexLattice(19));
+    }
+
+    private static int[] encrypt(String str) {
+        int[] array = new int[str.length()];
+        array[0] = str.charAt(0);
+        for (int i = 1; i < str.length(); i++) {
+            array[i] = (str.charAt(i) - str.charAt(i - 1));
+        }
+        return array;
+    }
+
+    private static String decrypt(int[] array) {
+        String str = "";
+        str += (char) array[0];
+        for (int i = 1; i < array.length; i++) {
+            int a = str.charAt(i - 1);
+            str += (char) (a + array[i]);
+        }
+        return str;
+    }
+
+    private static int sixSer(int b) {
+        if (b < 19 && b != 7) return -1;
+        if (b == 7) return 3;
+        int ser = 5;
+        while (1 > 0) {
+            int v = ser + (ser - 1) * 2 + (ser - 2) * 2;
+            if (v == b) return ser;
+            if (v > b) return -1;
+            ser += 2;
+        }
+    }
+
+    private static String hexLattice(int a) {
+        if (a == 1) return " o ";
+        String str = "";
+        int ser = sixSer(a);
+        if (ser == -1) return "Invalid!";
+        str += "  ";
+        for (int i = 0; i < (ser - 2) * 2; i++) {
+            if (i % 2 == 0) str += " ";
+            else str += "o";
+        }
+        str += "  \n ";
+        for (int i = 0; i < (ser - 1) * 2; i++) {
+            if (i % 2 == 0) str += " ";
+            else str += "o";
+        }
+        str += " \n";
+        for (int i = 0; i < ser * 2; i++) {
+            if (i % 2 == 0) str += " ";
+            else str += "o";
+        }
+        str += "\n ";
+        for (int i = 0; i < (ser - 1) * 2; i++) {
+            if (i % 2 == 0) str += " ";
+            else str += "o";
+        }
+        str += " \n  ";
+        for (int i = 0; i < (ser - 2) * 2; i++) {
+            if (i % 2 == 0) str += " ";
+            else str += "o";
+        }
+        str += "  \n ";
+        return str;
+    }
+
+    public static boolean canMove(String piece, String current, String target) {
+        int[] relMove = getRelMove(current, target);
+        switch (piece) {
+            case "Pawn":
+                return canPawnMove(current, relMove);
+            case "Rook":
+                return canRookMove(relMove);
+            case "Knight":
+                return canKnightMove(relMove);
+            case "Bishop":
+                return canBishopMove(relMove);
+            case "Queen":
+                return canQueenMove(relMove);
+            case "King":
+                return canKingMove(relMove);
+            default:
+                return false;
+        }
+    }
+
+    public static int[] getRelMove(String current, String target) {
+        char[] curChars = current.toCharArray();
+        char[] targChars = target.toCharArray();
+        int[] output = new int[2];
+        output[0] = (int) (targChars[0]) - (int) (curChars[0]);
+        output[1] = (int) (targChars[1]) - (int) (curChars[1]);
+        return output;
+    }
+
+    public static boolean canPawnMove(String current, int[] relMove) {
+        if (relMove[0] == 0) {
+            if (relMove[1] == 1) return true;
+            if (current.contains("2") && relMove[1] == 2) return true;
+        }
+        return false;
+    }
+
+    public static boolean canRookMove(int[] relMove) {
+        return (relMove[0] == 0 || relMove[1] == 0);
+    }
+
+    public static boolean canKnightMove(int[] relMove) {
+        if (Math.abs(relMove[0]) == 1 && Math.abs(relMove[1]) == 2) return true;
+        if (Math.abs(relMove[0]) == 2 && Math.abs(relMove[1]) == 1) return true;
+        return false;
+    }
+
+    public static boolean canBishopMove(int[] relMove) {
+        return (Math.abs(relMove[0]) == Math.abs(relMove[1]));
+    }
+
+    public static boolean canQueenMove(int[] relMove) {
+        return canRookMove(relMove) || canBishopMove(relMove);
+    }
+
+    public static boolean canKingMove(int[] relMove) {
+        return (Math.abs(relMove[0]) <= 1 && Math.abs(relMove[1]) <= 1);
+    }
+
+    private static int kolvoOneSimbol(String a, char c) {
+        int kolvo = 0;
+        for (int i = 0; i < a.length(); i++) {
+            if (a.charAt(i) == c) kolvo++;
+        }
+        return kolvo;
+    }
+
+    private static boolean canComplete(String a, String b) {
+        if (a.charAt(0) != b.charAt(0)) return false;
+        int k = 0;
+        for (char c = 'a'; c <= 'z'; c++) {
+            if (kolvoOneSimbol(a, c) > kolvoOneSimbol(b, c)) return false;
+        }
+        return true;
+    }
+
+    private static int sumDigProd(int... v) {
+        int k = 0;
+        for (int i = 0; i < v.length; i++)
+            k += v[i];
+        int u = 1;
+        String s = Integer.toString(k);
+        for (int j = 0; j < s.length(); j++)
+            u *= Character.getNumericValue(s.charAt(j));
+        if (u > 9)
+            return sumDigProd(u);
+        else
+            return u;
+    }
+
+    private static boolean validateCard(long a) {
+        String s = Long.toString(a);
+        String s2 = "";
+        if (s.length() < 14 || s.length() > 19) return false;
+        for (int i = 0; i < s.length() - 1; i++) {
+            s2 += s.charAt(i);
+        }
+        int step1 = Character.getNumericValue(s.charAt(s.length() - 1));
+        StringBuffer s3 = new StringBuffer(s2);
+        s3.reverse();
+        String s4 = "";
+        for (int i = 0; i < s3.length(); i++) {
+            if (i % 2 == 0) {
+                int c = Character.getNumericValue(s3.charAt(i)) * 2;
+                if (c < 10)
+                    s4 += Integer.toString(c);
+                else if (c == 10)
+                    s4 += Integer.toString(1);
+                else {
+                    String u = Integer.toString(c);
+                    int d = Character.getNumericValue(u.charAt(0)) + Character.getNumericValue(u.charAt(1));
+                    s4 += Integer.toString(d);
+                }
+            } else s4 += s3.charAt(i);
+        }
+        int u = 0;
+        for (int i = 0; i < s4.length(); i++)
+            u += Character.getNumericValue(s4.charAt(i));
+        String step4 = Integer.toString(u);
+        return (10 - Character.getNumericValue(step4.charAt(step4.length() - 1)) == step1);
+    }
+    private static String numToEng(int a){
+        if(!(a >= 0 && a <= 999)) return "Error";
+        String s = "";
+        String[] onechifr = {"zero","one","two","three","four","five","six","seven","eight","nine"};
+        String[] tn = {"ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"};
+        String[] twochifr = {"","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"};
+        String[] threechift = {"","one hundred","two hundred","three hundred","four hundred","five hundred",
+                "six hundreds","seven hundred","eight hundred","nine hundred"};
+        if(a < 10) return onechifr[a];
+        else if(a>= 10 && a <= 20) return tn[a-10];
+        else if(a>20 && a<100) {
+            String b = Integer.toString(a);
+            int fi = Character.getNumericValue(b.charAt(0));
+            int tw = Character.getNumericValue(b.charAt(1));
+            s += twochifr[fi] + " " + onechifr[tw];
+        }
+        else if(a % 100 == 0){
+            String b = Integer.toString(a);
+            int fi = Character.getNumericValue(b.charAt(0));
+            s += threechift[fi];
+        }
+        else {
+            String b = Integer.toString(a);
+            int fi = Character.getNumericValue(b.charAt(0));
+            int tw = Character.getNumericValue(b.charAt(1));
+            int th = Character.getNumericValue(b.charAt(2));
+            s += threechift[fi] + " " + twochifr[tw] + " " + onechifr[th];
+        }
+        return s;
+    }
+    private static String getSha256Hash(String s) throws NoSuchAlgorithmException{
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[]hashInBytes = md.digest(s.getBytes(StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashInBytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    public static String correctTitle(String str) {
+        String[] words = str.split(" ");
+        String output = "";
+        for (int i = 0; i < words.length; i++) {
+            if (i>0) {
+                output += " ";
+            }
+            String[] wordsNoHyphens = words[i].split("-");
+            for (int j = 0; j < wordsNoHyphens.length; j++) {
+                if(j>0) {
+                    output += "-";
+                }
+                if (wordsNoHyphens[j].equalsIgnoreCase("and")
+                        || wordsNoHyphens[j].equalsIgnoreCase("the")
+                        || wordsNoHyphens[j].equalsIgnoreCase("of")
+                        || wordsNoHyphens[j].equalsIgnoreCase("in")) {
+                    output += wordsNoHyphens[j].toLowerCase();
+                }
+                else {
+                    output += wordsNoHyphens[j].substring(0,1).toUpperCase();
+                    output += wordsNoHyphens[j].substring(1).toLowerCase();
+                }
+            }
+        }
+
+        return output;
+    }
+
+    public static String[] sameVowelGroup(String[] words) {
+        boolean first = true;
+        String wordVowels="";
+        String vowels = "aeiou";
+
+        ArrayList<String> results = new ArrayList<>();
+
+        for (String word : words) {
+            if (first) {
+                first=false;
+                wordVowels = getUniqueVowels(word);
+                if (wordVowels.length()==0)
+                    break;
+                continue;
+            }
+
+            StringBuilder vb = new StringBuilder(vowels);
+
+            boolean valid = true;
+            for (int i=0;i<word.length();i++) {
+                char c = word.charAt(i);
+                if (vowels.contains(Character.toString(c))) {
+                    if (!wordVowels.toString().contains(Character.toString(c))) {
+                        valid = false;
+                        break;
+                    }
+                }
+            }
+
+            if (valid) {
+                if (results.isEmpty())
+                    results.add(words[0]);
+                results.add(word);
+            }
+        }
+
+        if (results.isEmpty())
+            results.add(words[0]);
+
+        return results.toArray(new String[results.size()]);
+    }
+
+    public static String getUniqueVowels(String str) {
+        StringBuilder sb = new StringBuilder();
+        HashSet<Character> set = new HashSet<>();
+        String vowels = "aeiou";
+
+        for (int i=0;i<str.length();i++) {
+            char c = str.charAt(i);
+            if (vowels.contains(Character.toString(c))) {
+                if (set.add(c))
+                    sb.append(c);
+            }
+            if (sb.length()==5)
+                break;
+        }
+        return sb.toString();
+    }
+}
